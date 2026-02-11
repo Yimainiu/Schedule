@@ -65,9 +65,7 @@ export function ScheduleGrid({
   };
 
   const formatHour = (hour: number) => {
-    if (hour === 0) return '12 AM';
-    if (hour === 12) return '12 PM';
-    return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
+    return `${hour.toString().padStart(2, '0')}:00`;
   };
 
   return (
