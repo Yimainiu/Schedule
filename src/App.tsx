@@ -3,7 +3,7 @@ import { ScheduleGrid } from './components/ScheduleGrid';
 import { ParticipantList } from './components/ParticipantList';
 import { EventModal } from './components/EventModal';
 import { projectId, publicAnonKey } from './utils/supabase/info';
-import { Plus, Share2 } from 'lucide-react';
+import { Copy, Plus, Share2 } from 'lucide-react';
 
 export default function App() {
   const [eventId, setEventId] = useState<string | null>(null);
@@ -161,28 +161,40 @@ export default function App() {
     }
   };
 
-  const handleShareEvent = () => {
-    if (!eventId) return;
-    const shareUrl = `${window.location.origin}?eventId=${eventId}`;
-    
-    // Fallback method for copying to clipboard
+  const copyToClipboard = async (text: string, successMessage: string) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        alert(successMessage);
+        return;
+      }
+    } catch (_) {}
     const textarea = document.createElement('textarea');
-    textarea.value = shareUrl;
+    textarea.value = text;
     textarea.style.position = 'fixed';
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     textarea.select();
-    
     try {
       document.execCommand('copy');
-      alert('Share link copied to clipboard!');
+      alert(successMessage);
     } catch (err) {
       console.error('Failed to copy:', err);
-      // If copy fails, show the URL in a prompt so user can manually copy
-      prompt('Copy this link to share:', shareUrl);
+      prompt('Copy:', text);
     } finally {
       document.body.removeChild(textarea);
     }
+  };
+
+  const handleCopyEventId = () => {
+    if (!eventId) return;
+    copyToClipboard(eventId, 'Event ID copied to clipboard!');
+  };
+
+  const handleShareEvent = () => {
+    if (!eventId) return;
+    const shareUrl = `${window.location.origin}?eventId=${eventId}`;
+    copyToClipboard(shareUrl, 'Share link copied to clipboard!');
   };
 
   const currentUser = eventData?.participants.find((p: any) => p.userId === userId);
@@ -222,6 +234,14 @@ export default function App() {
                 </button>
               ) : (
                 <>
+                  <button
+                    onClick={handleCopyEventId}
+                    className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition flex items-center gap-2"
+                    title="Copy Event ID"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy Event ID
+                  </button>
                   <button
                     onClick={handleShareEvent}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
